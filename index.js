@@ -48,3 +48,5 @@ app.all("*", (request, response) => {
 app.listen(port, () => {
   console.log(`Listening on ${port}`);
 });
+
+module.exports = app;
