@@ -1,52 +1,48 @@
-// kicks out the express requirement
-const express = require("express");
-//allows the app to run on express
-const app = express();
-//allows the teams to pull from the json files
-const teams = require("./teams.json");
-// verifies which http port the app will be using on the browser
-const port = 3000;
-//allows the body json files from the bodyParser package to run
-const bodyParser = require("body-parser");
+const express = require('express')
+const models = require('./models')
 
-app.get("/teams", (request, response) => {
-  let result = request.params.map;
-  console.log(map);
-  response.send(result);
-});
+const app = express()
 
-app.get("/teams/:filter/", (request, response) => {
-  let result = teams.filter(team => {
-    let filter = request.params.filter;
-    return team.id == filter || team.abbreviation === filter;
-  });
-  response.send(result);
-});
 
-app.use(bodyParser.json);
+app.use(express.json())
+app.use(express.urlencoded({ extended: true}))
 
-app.post("/teams/:body/", bodyParser.json(), (request, response) => {
-  const body = request.body || {};
-  let newBodyTeams = teams.concat(body);
-  if ("location" || "mascot" || "conference" || "division") {
-  } else {
-    request
-      .status(400)
-      .send(
-        "For this to work it must have location, mascot, conference, division"
-      );
-  }
-  console.log({ body });
-  response.send(newBodyTeams);
-});
+const port = process.env.PORT || 3000
+app.listen(port, () => console.log(`Listening on ${port}`))
 
-app.all("*", (request, response) => {
-  console.log({ request });
-  response.send("Not Found");
-});
 
-app.listen(port, () => {
-  console.log(`Listening on ${port}`);
-});
+app.get('/teams', async (request, response) => {
+    const teams = await models.Teams.findAll()
 
-module.exports = app;
+    response.send(teams)
+})
+
+app.get('/teams/:placeholder', (request, response) => {
+    let result = teams.filter((team) => {
+        const filter = request.params.placeholder
+        return team.id == filter || 
+        team.location == filter ||
+        team.mascot == filter ||
+        team.abbreviation == filter ||
+        team.conference == filter ||
+        team.division == filter
+    })
+    response.send(result)
+})
+
+app.post('/teams', (request, response) => {
+    const team = {
+        id: request.body.id,
+        location: request.body.location,
+        mascot: request.body.mascot,
+        abbreviation: request.body.abbreviation,
+        conference: request.body.conference,
+        division: request.body.division
+    }
+    teams.push(team)
+    response.send(team)
+})
+
+app.all('*', (request, response) => {
+    response.sendStatus(404)
+})
